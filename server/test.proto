@@ -1,0 +1,427 @@
+syntax="proto3";
+
+message PToP{
+    message S1Rsp{
+        uint32 ip = 1;
+        uint32 port = 2;
+    }
+
+    message AS2Req{
+        uint32 bid = 1;
+        string token = 2;
+    }
+
+    message S2ARsp{
+        bool offline = 1;
+        uint32 id = 2;
+    }
+
+    message S2BRelay{
+        uint32 aid = 1;
+    }
+
+    message S2InfoReq{
+        uint32 id = 1;
+        uint32 s1ip = 2;
+        uint32 s1port = 3;
+        string token = 4; 
+    }
+    // message S2InfoRsp{
+    //     uint32 id = 1;
+    // }
+    message S2InfoRelay{
+        uint32 id = 1;
+        uint32 ip = 2;
+        uint32 port = 3;
+        uint32 mode = 4;
+        //ip port 不变 0
+        //增加 1 
+        //减少 2 
+    }
+
+}
+
+
+message People{
+    uint32 id=1;
+    string name=2;
+    bytes headpic=3;
+}
+message AddFriend{
+//A：发起者。B：目标
+	//静态
+    message AToServer{
+        string A_short_token=1;
+        uint32 B_id=2;
+        //uint64 A_time=3;
+    }
+	
+    //message ServerRelayToB{
+        //People A_info=1;
+        //uint64 A_time=2;
+    //}
+
+	//静态
+    message BToServer{
+        uint32 A_id=1;
+        bool refuse=2;     //0:agree;1:refuse
+        string B_short_token=3;
+    }
+
+    //message ServerRspToA{
+        //People B_info=1;
+        //bool refuse=2;     //0:agree;1:refuse
+    //}
+
+}
+
+//动态
+//监听(登录&心跳发送)
+message AddFriendFromOther{
+    //message Req{
+        //string short_token = 1;
+    //}
+    message Rsp{
+        repeated People user = 1;
+    }
+}
+
+//动态
+//监听(登录&心跳发送)
+message AddFriendFromSelf{
+    //message Req{
+        //string short_token = 1;
+    //}
+    message Rsp{
+        message RequestFromSelf{
+            People obj_user = 1;
+            bytes status=2;// 00:wait 01:agree 10:refuse
+        }
+        repeated RequestFromSelf requests = 1;
+    }
+}
+
+//静态(req&res)
+message Register{
+
+    message Req{
+        string name=1;
+        string password=2;
+        bytes headpic=3;
+    }
+
+    message Res{
+        uint32 id=1;
+    }
+
+    // oneof test_oneof{
+    //     Register_req register_req=1;
+    //     Register_req register_res=2;
+    // }
+    
+}
+
+
+
+
+
+
+
+//静态(req&res)
+message Login{
+
+    message Req{
+        uint32 id=1;
+        string password=2;
+        uint32 in_ip=3;
+        uint32 in_port=4;
+    }
+
+    message Res{
+        string name=1;
+        bytes headpic=2;
+        // //repeated People friend=3;
+        // repeated People users_wait_for_add=4;
+        // message RequestFromSelf{
+        //     People obj_user = 1;
+        //     bool refuse = 2;
+        // }
+        // repeated RequestFromSelf add_friend_req=5;
+        string short_token=6;
+        string long_token=7;
+        // uint64 start_time=8;
+
+    }
+
+}
+
+
+
+//静态(req&res)
+message FriendList{
+    message Req{
+        string token = 1;    
+    }
+    message Rsp{
+        repeated People friend_list= 1;
+    }
+}
+
+//动态
+//监听
+message UnreceivedMsg{
+    message Res{
+        message Msg{
+            uint32 other_id=1;
+            string content=2;
+            uint64 time=3;
+        }
+        repeated Msg msg=1;
+    }
+	
+	//message Req{
+        //string other_id=1;
+		//uint64 time=2;
+    //}
+}
+
+//动态(req&res)
+message HeartBeat{
+    message Req{
+
+        string short_token=1;
+        uint32 in_ip=2;
+        uint32 in_port=3;
+    
+    }
+    
+    message Res{
+    
+        bool alive=1;
+    }
+
+}
+
+//动态(req&res)
+message GetToken{
+    message Req{
+        string long_token=1;
+    }
+    
+    message Res{
+        string short_token=1;
+        // uint64 start_time=2;
+    } 
+}
+
+//静态(req&res)
+message SearchUser{
+    message Req{
+        uint32 obj_id=1;
+        string short_token=2;
+    }
+    
+    message Res{
+        People user=1;
+    }
+}
+
+
+message ChatWithServer{
+	//静态
+    message Req{
+        string short_token=1;
+        uint32 obj_id=2;
+        uint64 time=3;
+        string content=4;//utf-8
+    }
+    
+	//动态
+	//监听
+    message Relay{
+        uint32 src_id=1;
+        string content=2;
+        uint64 time=3;
+    }
+}
+
+//静态
+message ChangePassword{
+    message Req{
+        string short_token = 1;
+        string new_password = 2;
+    }
+	message Rsp{
+		bool success = 1;
+	}
+}
+
+//静态
+message ChangeName{
+    message Req{
+        string short_token = 1;
+        string new_name = 2;
+    }
+	message Rsp{
+		bool success = 1;
+    }
+    
+    message RelayToFriend{
+        uint32 id = 1;
+        string name = 2;
+    }
+}
+
+//静态
+message ChangeHeadpic{
+    message Req{
+        string short_token = 1;
+        bytes new_headpic = 2;
+    }
+	
+	message Rsp{
+		bool success = 1;
+    }
+    
+
+    message RelayToFriend{
+        uint32 id = 1;
+        bytes headpic = 2;
+    }
+}
+
+
+//A->B
+message DeleteFriend{
+    //静态
+    message AToServer{
+        string short_token=1;
+        uint32 obj_id=2;
+    }
+    //动态
+    message ServerToB{
+        repeated uint32 src_id = 1;
+    }
+}
+//TODO 聊天记录
+//TODO 已读
+
+//静态
+message ChatRecord{
+    message Req{
+        string short_token=1;
+        uint64 time=2;
+        uint32 obj_id=3;
+    }
+    message Rsp{
+        uint32 obj_id=1;
+        message Msg{
+            string content=1;
+            uint64 time=2;
+            uint32 sender=3;//对应于本条消息的发起者
+        }
+        repeated Msg msg=2;
+    }
+}
+
+
+message Seen{
+    //静态
+    message AToServer{
+        string short_token=1;
+        uint32 obj_id=2;
+        uint64 time=3;
+    }
+    //动态
+    message ServerToB{
+        message SeenInfo{
+            uint32 src_id=1;
+            uint64 time=2;
+        }
+        repeated SeenInfo seen_info=1;
+    }
+}
+
+message Error{
+
+    enum Error_type{
+        UNKNOWN_ERR=0;
+        UNKNOWN_MSG=1;
+        UNKNOWN_REG_ERR=2;
+        UNKNOWN_LOGIN_ERR=3;
+        UNKNOWN_SEARCH_ERR=4;
+        UNKNOWN_HEARTBEAT_ERR=5;
+        UNKNOWN_GETTOKEN_ERR=6;
+        UNKNOWN_ADD_ERR=7;
+        UNKNOWN_CHAT_ERR=8;
+        UNRECOGNIZE_SHORT_TOKEN=9;
+        UNRECOGNIZE_LONG_TOKEN=10;
+        USER_NO_EXIST=11;
+        ID_OR_PSW_WRONG=12;
+        UNKNOWN_FRIEND_ERR=13;
+        UNKNOWN_CHATREC_ERR=14;
+        UNKNOWN_CHANGE_ERR = 15;
+        UNKNOWN_ADD_REQ_ERR = 16;
+        UNKNOWN_SEEN_ERR=17;
+        UNKNOWN_DEL_ERR=18;
+    }
+    Error_type error_type=1;
+}
+
+message ReqToServer{
+    oneof Req{
+        AddFriend.AToServer add_friend_a_to_server=1;
+        AddFriend.BToServer add_friend_b_to_server=2;
+        ChatWithServer.Req chat_with_server_req=3;
+        GetToken.Req get_token_req=4;
+        HeartBeat.Req heart_beat_req=5;
+        Login.Req login_req=6;
+        Register.Req register_req=7;
+        SearchUser.Req search_user_req=8;
+        FriendList.Req friendlist_req=9;
+        ChatRecord.Req chat_record_req=10;
+        ChangePassword.Req change_password_req = 11;
+        ChangeName.Req change_name_req = 12;
+        ChangeHeadpic.Req change_headpic_req = 13;
+        // AddFriendRequestFromOther.Req add_friend_request_from_other_req = 14;
+        // AddFriendRequestFromSelf.Req add_friend_request_from_self_req = 15;
+        DeleteFriend.AToServer delete_friend_a_to_server=14;
+        Seen.AToServer seen_a_to_server=15;
+        PToP.AS2Req a_s2_req=16;
+        PToP.S2InfoReq s2_info_req = 17;
+    }
+}
+
+message RspToClient{
+    oneof Rsp{
+        // AddFriend.ServerRelayToB add_friend_server_relay_to_b=1;
+        // AddFriend.ServerRspToA add_friend_server_rsp_to_a=2;
+        ChatWithServer.Relay chat_with_server_relay=3;
+        GetToken.Res get_token_res=4;
+        HeartBeat.Res heart_beat_res=5;
+        Login.Res login_res=6;
+        Register.Res register_res=7;
+        SearchUser.Res search_user_res=8;
+        Error error=9;
+        FriendList.Rsp friendlist_res = 10;
+        ChatRecord.Rsp chat_record_rsp=11;
+        AddFriendFromOther.Rsp add_friend_from_other_rsp = 12;
+        AddFriendFromSelf.Rsp add_friend_from_self_rsp = 13;
+        UnreceivedMsg.Res unreceived_msg_res=14;
+        ChangePassword.Rsp change_password_rsp=15;
+        ChangeName.Rsp change_name_rsp=16;
+        ChangeHeadpic.Rsp change_headpic_rsp=17;
+        DeleteFriend.ServerToB delete_friend_server_to_b=18;
+        Seen.ServerToB seen_server_to_b=19;
+        ChangeName.RelayToFriend change_name_relay=20;
+        ChangeHeadpic.RelayToFriend change_headpic_relay=21;
+        PToP.S1Rsp s1_rsp = 22;
+        PToP.S2ARsp s2_rsp = 23;
+        PToP.S2BRelay s2_b_relay=24;
+        PToP.S2InfoRelay s2_info_rsp = 25;
+    }
+}
+
+
+
+

@@ -1,0 +1,20 @@
+从左往右：
+
+unsend_msg addfriendfromself addfriendfromother seen del_friend change_name change_headpic
+
+        set_redis: ["send_rsp", function (res, callback) {
+            if(send){
+                callback(null);
+            }
+            else{
+                redis_client.get("id:"+obj_id+"bitmap:",(err,reply)=>{
+                    let bitmap=Number(reply);
+                    let new_bitmap=bitmap | 0b10000000;
+                    redis_client.setex("id:"+obj_id+"bitmap:",3600*24*30+10,new_bitmap,()=>{
+                        callback(null);
+                    });
+                })
+            }
+        }]
+
+TODO fuck wzl        
